@@ -5,6 +5,12 @@ Shader "PS1Style/VertexLitAffine"
     // 2) Affine texture mapping — текстуры "плывут" на плоскостях под углом (без перспективной коррекции UV).
     // Оба эффекта дают тот самый узнаваемый вайб PS1, и работают на ЛЮБОЙ геометрии,
     // из какого бы ассет-пака она ни была — это и есть "склеивающий" слой стиля.
+    //
+    // ВАЖНО про "плывущий" пол: аффинная ошибка UV растёт с РАЗМЕРОМ полигона. Если пол —
+    // это один огромный Quad (2 треугольника на всю комнату), искажение будет экстремальным.
+    // На PS1 пол всегда делали из МНОЖЕСТВА мелких полигонов (сетка, а не один плоский прямоугольник) —
+    // делайте так же для больших плоскостей, плюс используйте слайдер Affine Strength ниже,
+    // чтобы приглушить эффект именно на полу/потолке, оставив его сильным на мелких пропах.
 
     Properties
     {
@@ -15,7 +21,7 @@ Shader "PS1Style/VertexLitAffine"
         _GeometryResolution ("Snap grid resolution (например 160)", Range(16, 640)) = 160
 
         [Header(Affine Wobble)]
-        [Toggle] _AffineMapping ("Включить аффинные текстуры", Float) = 1
+        _AffineMapping ("Сила аффинного плыва (0 = выкл, 1 = максимум)", Range(0, 1)) = 1
     }
 
     SubShader
@@ -45,11 +51,15 @@ Shader "PS1Style/VertexLitAffine"
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
-                // "noperspective" — ключевое слово, которое отключает перспективную коррекцию
-                // интерполяции. Именно так на PS1 "плыли" текстуры на полу и стенах под углом.
-                noperspective float2 uv : TEXCOORD0;
-                float3 normalWS  : TEXCOORD1;
-                float3 positionWS: TEXCOORD2;
+                // Одни и те же UV передаются ДВУМЯ способами интерполяции:
+                // uvCorrect — обычная перспективно-корректная развёртка (стандартное поведение GPU).
+                // uvAffine  — "noperspective" отключает перспективную коррекцию для этого варьинга,
+                //             интерполяция идёт линейно в экранном пространстве — так "плыли"
+                //             текстуры на PS1. В фрагментном шейдере смешиваем их по _AffineMapping,
+                //             получая управляемую СИЛУ эффекта, а не жёсткий вкл/выкл.
+                float2 uvCorrect            : TEXCOORD0;
+                noperspective float2 uvAffine : TEXCOORD1;
+                float3 normalWS             : TEXCOORD2;
             };
 
             TEXTURE2D(_MainTex);
@@ -76,15 +86,21 @@ Shader "PS1Style/VertexLitAffine"
                 snapped.xy = snapped.xy * snapped.w;                // -> обратно в clip space
 
                 OUT.positionCS = snapped;
-                OUT.uv = TRANSFORM_TEX(IN.uv, _MainTex);
+
+                float2 uv = TRANSFORM_TEX(IN.uv, _MainTex);
+                OUT.uvCorrect = uv;
+                OUT.uvAffine = uv;
+
                 OUT.normalWS = TransformObjectToWorldNormal(IN.normalOS);
-                OUT.positionWS = positionWS;
                 return OUT;
             }
 
             half4 frag(Varyings IN) : SV_Target
             {
-                half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv) * _Color;
+                // Смешиваем перспективно-корректные и "плывущие" UV по силе эффекта.
+                // _AffineMapping = 0 -> обычная чёткая текстура, 1 -> полный PS1-вайб.
+                float2 uv = lerp(IN.uvCorrect, IN.uvAffine, _AffineMapping);
+                half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv) * _Color;
 
                 // Простое ламбертовское освещение по основному источнику — большего PS1 и не знала.
                 Light mainLight = GetMainLight();
