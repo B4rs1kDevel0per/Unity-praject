@@ -1,14 +1,14 @@
 using GameSettings.Core;
 using GameSettings.Data;
+using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace GameSettings.UI
 {
-    /// <summary>Связывает Dropdown "Качество текстур" с SettingsManager.</summary>
+    /// <summary>Связывает TMP_Dropdown "Качество текстур" с SettingsManager.</summary>
     public class TextureQualityBinder : MonoBehaviour
     {
-        [SerializeField] private Dropdown textureQualityDropdown;
+        [SerializeField] private TMP_Dropdown textureQualityDropdown;
 
         private static readonly string[] Labels = { "Полное", "Половина", "Четверть", "Восьмая" };
 

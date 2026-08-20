@@ -112,7 +112,68 @@
    сохранённому состоянию.
 6. Нажмите `ResetButton` — вернутся заводские значения (не сохраняются, пока не нажмёте Apply).
 
-## 7. Частые ошибки
+## 8. Если UI настроек — отдельная сцена (Settings), а игра — другая (World)
+
+Раз у вас уже есть `SceneTransitionManager` и сцены `Menu` / `World` / `Settings`, вот что нужно
+сделать дополнительно, иначе Bloom/AO/MotionBlur/сглаживание перестанут применяться к игровой камере
+после возврата из настроек (сама камера каждый раз создаётся заново при загрузке сцены `World`,
+а `GraphicsApplier` — постоянный объект и держит ссылку на старую, уже уничтоженную камеру):
+
+1. В сцене `World` найдите объект с компонентом `Camera` у вашего игрока (у вас это дочерний
+   объект под `PlayerCamera.cs`, поле `targetCamera` в инспекторе `PlayerCamera`).
+2. На этот же объект (или любой объект сцены `World`) добавьте компонент `Runtime Graphics Targets`.
+3. В поле `Scene Camera` перетащите ту же камеру игрока.
+4. В поле `Scene Volume` перетащите Global Volume сцены `World` (если он у вас в этой сцене свой,
+   отдельный от объекта в сцене Settings).
+5. Повторите пункты 2-4 для любых других игровых сцен, если они у вас появятся.
+6. Сцену `Settings` трогать не нужно — там уже есть общий `GraphicsApplier`/`SettingsManager`
+   (не забудьте объект `SettingsSystem` пометить как persist — `DontDestroyOnLoad` уже вызывается
+   в коде `SettingsManager.Awake()`, просто убедитесь, что этот объект существует ДО первой загрузки
+   сцены `World`, то есть создайте его в сцене `Menu` или `Settings`, откуда всё начинается).
+
+Разрешение/VSync/FPS/тени/текстуры/LOD трогать не нужно — они применяются к глобальному состоянию
+движка (`QualitySettings`, `Screen`, URP Asset), а не к объектам конкретной сцены, поэтому работают
+сразу в любой сцене без регистрации.
+
+## 9. Кнопка "Закрыть" → выход в сцену Menu
+
+`SettingsPanelController` теперь при закрытии либо просто прячет панель (`Close Loads Menu Scene = false`),
+либо грузит сцену меню (`Close Loads Menu Scene = true`, поле `Menu Scene Name = "Menu"`).
+Если в проекте есть `SceneTransitionManager` (у вас есть — с глитч-переходом), он использует именно
+его через `SceneTransitionManager.Instance.LoadScene("Menu")`. Если такого компонента в сцене нет —
+автоматически используется обычная синхронная `SceneManager.LoadScene("Menu")`.
+
+Убедитесь, что сцена `Menu` добавлена в Build Settings (File → Build Settings → Scenes In Build),
+иначе `LoadScene` по имени не найдёт сцену в билде (в редакторе может работать, а в билде — нет).
+
+## 10. Список настроек как прокручиваемый список (Scroll View)
+
+Чтобы вся панель (`SettingsPanel` со всеми секциями) мотался колёсиком мыши:
+
+1. Выделите `SettingsPanel`, ПКМ → UI → Scroll View. Получится объект `Scroll View` с детьми
+   `Viewport` → `Content`.
+2. Перетащите все ваши секции (`Section_Screen`, `Section_Quality`, `Section_Shadows`,
+   `Section_PostFX`) внутрь `Content` (просто перетаскиванием в Hierarchy).
+3. На `Content` добавьте компонент `Vertical Layout Group` (Child Alignment = Upper Center,
+   Spacing = 16-24, Child Controls Height = off, Child Force Expand Width = on).
+4. Там же добавьте `Content Size Fitter` → Vertical Fit = Preferred Size (это заставит `Content`
+   растягиваться под реальную высоту всех секций).
+5. На `Scroll Rect` (сам `Scroll View`) выключите `Horizontal`, оставьте только `Vertical`.
+6. Кнопки Apply/Cancel/Reset/Close лучше оставить СНАРУЖИ `Scroll View`, закреплёнными внизу
+   панели (свой якорь Bottom), чтобы они не укатывались при прокрутке.
+
+## 11. Про размер UI ("легаси UI очень мелкий")
+
+Дело не в Legacy/TMP, а в `Canvas Scaler`:
+1. Выделите `Canvas` → компонент `Canvas Scaler`.
+2. `UI Scale Mode` → `Scale With Screen Size`.
+3. `Reference Resolution` → `1920 x 1080` (или под какое разрешение вы дизайните).
+4. `Match` → 0.5 (баланс между шириной и высотой).
+
+Без этого UI масштабируется 1:1 в пикселях экрана и на большом разрешении/DPI выглядит крошечным.
+Дополнительно для TMP-текста поставьте `Auto Size` (галка `Auto Size` в компоненте TMP-текста)
+с диапазоном мин/макс — тогда подписи не будут вылезать за рамки при разных длинах слов.
+
 - **NullReferenceException на SettingsManager.Instance** — убедитесь, что объект
   `SettingsSystem` есть на самой первой загружаемой сцене и не удаляется раньше времени.
 - **Postprocessing не действует** — проверьте, что `Volume.isGlobal = true` и в URP Asset

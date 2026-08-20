@@ -1,13 +1,14 @@
 using GameSettings.Core;
 using GameSettings.Data;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace GameSettings.UI
 {
     /// <summary>
-    /// Единый биндер для всей группы "Тени": Toggle вкл/выкл, Dropdown разрешения,
-    /// Slider дистанции прорисовки, Dropdown количества каскадов.
+    /// Единый биндер для всей группы "Тени": Toggle вкл/выкл, TMP_Dropdown разрешения,
+    /// Slider дистанции прорисовки, TMP_Dropdown количества каскадов.
     /// Объединено в один класс, т.к. UI-элементы логически образуют одну секцию
     /// и часто должны блокироваться вместе (если тени выключены — остальные поля неактивны).
     /// </summary>
@@ -17,15 +18,15 @@ namespace GameSettings.UI
         [SerializeField] private Toggle shadowsEnabledToggle;
 
         [Header("Разрешение теней")]
-        [SerializeField] private Dropdown shadowResolutionDropdown;
+        [SerializeField] private TMP_Dropdown shadowResolutionDropdown;
         private static readonly string[] ResolutionLabels = { "Низкое", "Среднее", "Высокое", "Очень высокое" };
 
         [Header("Дистанция прорисовки")]
         [SerializeField] private Slider shadowDistanceSlider; // рекомендуемый диапазон 10..300
-        [SerializeField] private Text shadowDistanceValueLabel; // необязательно, для отображения числа
+        [SerializeField] private TextMeshProUGUI shadowDistanceValueLabel; // необязательно, для отображения числа
 
         [Header("Каскады")]
-        [SerializeField] private Dropdown shadowCascadesDropdown;
+        [SerializeField] private TMP_Dropdown shadowCascadesDropdown;
         private static readonly string[] CascadeLabels = { "Без каскадов", "2 каскада", "4 каскада" };
         private static readonly int[] CascadeValues = { 0, 2, 4 };
 

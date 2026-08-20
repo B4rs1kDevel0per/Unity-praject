@@ -1,5 +1,6 @@
 using GameSettings.Core;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace GameSettings.UI
@@ -18,6 +19,11 @@ namespace GameSettings.UI
         [SerializeField] private Button cancelButton;
         [SerializeField] private Button resetButton;
         [SerializeField] private Button closeButton;
+
+        [Header("Переход при закрытии")]
+        [Tooltip("Если true — кнопка 'Закрыть' не просто прячет панель, а грузит сцену меню (см. menuSceneName).")]
+        [SerializeField] private bool closeLoadsMenuScene = true;
+        [SerializeField] private string menuSceneName = "Menu";
 
         private void Awake()
         {
@@ -54,7 +60,23 @@ namespace GameSettings.UI
         {
             // По желанию: откатываем несохранённые изменения при закрытии без Apply.
             SettingsManager.Instance.CancelChanges();
-            settingsPanelRoot.SetActive(false);
+
+            if (!closeLoadsMenuScene)
+            {
+                settingsPanelRoot.SetActive(false);
+                return;
+            }
+
+            // Если в проекте есть SceneTransitionManager (глитч-переход между сценами) — используем его.
+            // Иначе — обычная синхронная загрузка сцены.
+            if (SceneTransitionManager.Instance != null)
+            {
+                SceneTransitionManager.Instance.LoadScene(menuSceneName);
+            }
+            else
+            {
+                SceneManager.LoadScene(menuSceneName);
+            }
         }
 
         public void Open()

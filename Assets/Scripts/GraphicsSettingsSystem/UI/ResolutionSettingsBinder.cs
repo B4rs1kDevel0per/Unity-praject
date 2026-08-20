@@ -1,16 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using GameSettings.Core;
+using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-
-// Если в проекте используется TextMeshPro-версия Dropdown, замените
-// "UnityEngine.UI.Dropdown" на "TMPro.TMP_Dropdown" (using TMPro;) — API идентично.
 
 namespace GameSettings.UI
 {
     /// <summary>
-    /// Связывает Dropdown "Разрешение" и Dropdown "Частота обновления" с SettingsManager.
+    /// Связывает TMP_Dropdown "Разрешение" и TMP_Dropdown "Частота обновления" с SettingsManager.
     /// Разрешения берутся из Screen.resolutions (список, который реально поддерживает монитор).
     /// ВАЖНО: используется Resolution.refreshRateRatio — доступно с Unity 2022.2+.
     /// На более старых версиях замените на устаревшее поле Resolution.refreshRate (int),
@@ -18,8 +15,8 @@ namespace GameSettings.UI
     /// </summary>
     public class ResolutionSettingsBinder : MonoBehaviour
     {
-        [SerializeField] private Dropdown resolutionDropdown;
-        [SerializeField] private Dropdown refreshRateDropdown;
+        [SerializeField] private TMP_Dropdown resolutionDropdown;
+        [SerializeField] private TMP_Dropdown refreshRateDropdown;
 
         // Уникальные разрешения (без дублей по частоте обновления)
         private List<(int width, int height)> _resolutions;

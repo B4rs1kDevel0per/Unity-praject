@@ -1,5 +1,6 @@
 using GameSettings.Core;
 using GameSettings.Data;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,7 +10,7 @@ namespace GameSettings.UI
     public class LodBiasBinder : MonoBehaviour
     {
         [SerializeField] private Slider lodBiasSlider; // рекомендуемый диапазон 0.25 .. 2.0
-        [SerializeField] private Text valueLabel;       // необязательно
+        [SerializeField] private TextMeshProUGUI valueLabel; // необязательно
 
         private void OnEnable()
         {

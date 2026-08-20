@@ -25,6 +25,12 @@ MonoBehaviour:
   - m_enabled: 1
     m_path: Assets/Scenes/Menu.unity
     m_guid: ad065caf2a78ed14f898afbad97cfd27
+  - m_enabled: 1
+    m_path: Assets/Scenes/Settings.unity
+    m_guid: 6190fae92f173284e987ea3bae373a2b
+  - m_enabled: 1
+    m_path: Assets/Scenes/World.unity
+    m_guid: 99c9720ab356a0642a771bea13969a05
   m_HasScriptingDefines: 0
   m_ScriptingDefines: []
   m_PlayerSettingsYaml:

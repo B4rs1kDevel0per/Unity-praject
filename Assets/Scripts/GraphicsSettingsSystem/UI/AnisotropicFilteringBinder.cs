@@ -1,14 +1,14 @@
 using GameSettings.Core;
 using GameSettings.Data;
+using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace GameSettings.UI
 {
-    /// <summary>Связывает Dropdown "Анизотропная фильтрация" с SettingsManager.</summary>
+    /// <summary>Связывает TMP_Dropdown "Анизотропная фильтрация" с SettingsManager.</summary>
     public class AnisotropicFilteringBinder : MonoBehaviour
     {
-        [SerializeField] private Dropdown anisotropicDropdown;
+        [SerializeField] private TMP_Dropdown anisotropicDropdown;
 
         private static readonly string[] Labels = { "Выключена", "По текстуре", "Принудительно (макс.)" };
 

@@ -32,6 +32,20 @@ namespace GameSettings.Core
                 targetCamera = Camera.main;
         }
 
+        /// <summary>
+        /// Позволяет заменить "живые" объекты сцены (камеру, Volume, AO-фичу) во время работы игры.
+        /// Нужно, когда UI настроек вынесен в отдельную сцену (главное меню), а GraphicsApplier
+        /// живёт постоянно через DontDestroyOnLoad — камера и Volume игровой сцены при каждой
+        /// загрузке новой сцены создаются заново, и старые сериализованные ссылки становятся невалидными.
+        /// Вызывайте этот метод из RuntimeGraphicsTargets.cs при старте каждой игровой сцены.
+        /// </summary>
+        public void SetRuntimeTargets(Camera camera, Volume volume, ScriptableRendererFeature aoFeature)
+        {
+            if (camera != null) targetCamera = camera;
+            if (volume != null) globalVolume = volume;
+            if (aoFeature != null) ambientOcclusionFeature = aoFeature;
+        }
+
         // ---------------------------------------------------------------
         // ЭКРАН
         // ---------------------------------------------------------------

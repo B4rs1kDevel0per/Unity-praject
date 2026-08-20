@@ -1,14 +1,14 @@
 using GameSettings.Core;
 using GameSettings.Data;
+using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace GameSettings.UI
 {
-    /// <summary>Связывает Dropdown "Режим экрана" (Полноэкранный/Оконный/Borderless) с SettingsManager.</summary>
+    /// <summary>Связывает TMP_Dropdown "Режим экрана" (Полноэкранный/Оконный/Borderless) с SettingsManager.</summary>
     public class ScreenModeBinder : MonoBehaviour
     {
-        [SerializeField] private Dropdown screenModeDropdown;
+        [SerializeField] private TMP_Dropdown screenModeDropdown;
 
         private static readonly string[] Labels =
         {

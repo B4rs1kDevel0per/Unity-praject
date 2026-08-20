@@ -1,18 +1,18 @@
 using System.Linq;
 using GameSettings.Core;
 using GameSettings.Data;
+using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace GameSettings.UI
 {
     /// <summary>
-    /// Связывает Dropdown "Лимит FPS" с SettingsManager.
+    /// Связывает TMP_Dropdown "Лимит FPS" с SettingsManager.
     /// Список пресетов задаётся вручную (0 = без ограничения).
     /// </summary>
     public class FpsLimitBinder : MonoBehaviour
     {
-        [SerializeField] private Dropdown fpsLimitDropdown;
+        [SerializeField] private TMP_Dropdown fpsLimitDropdown;
         [SerializeField] private int[] presets = { 0, 30, 60, 90, 120, 144, 240 };
 
         private void OnEnable()

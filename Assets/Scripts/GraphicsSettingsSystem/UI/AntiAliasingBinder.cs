@@ -1,14 +1,14 @@
 using GameSettings.Core;
 using GameSettings.Data;
+using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace GameSettings.UI
 {
-    /// <summary>Связывает Dropdown "Сглаживание" с SettingsManager.</summary>
+    /// <summary>Связывает TMP_Dropdown "Сглаживание" с SettingsManager.</summary>
     public class AntiAliasingBinder : MonoBehaviour
     {
-        [SerializeField] private Dropdown antiAliasingDropdown;
+        [SerializeField] private TMP_Dropdown antiAliasingDropdown;
 
         private static readonly string[] Labels =
         {

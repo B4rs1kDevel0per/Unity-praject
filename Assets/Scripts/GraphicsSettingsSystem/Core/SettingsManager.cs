@@ -94,6 +94,18 @@ namespace GameSettings.Core
             OnSettingsChanged?.Invoke(Current);
         }
 
+        /// <summary>
+        /// Регистрирует "живые" объекты новой игровой сцены (камеру, Volume, AO-фичу) и сразу
+        /// заново применяет к ним текущие настройки. Вызывается из RuntimeGraphicsTargets.cs
+        /// при старте каждой игровой сцены — актуально, когда UI настроек вынесен в отдельную сцену.
+        /// </summary>
+        public void RegisterRuntimeTargets(Camera camera, UnityEngine.Rendering.Volume volume,
+            UnityEngine.Rendering.Universal.ScriptableRendererFeature aoFeature)
+        {
+            applier.SetRuntimeTargets(camera, volume, aoFeature);
+            applier.ApplyAll(Current);
+        }
+
         // -----------------------------------------------------------
         // ЭКРАН
         // -----------------------------------------------------------
