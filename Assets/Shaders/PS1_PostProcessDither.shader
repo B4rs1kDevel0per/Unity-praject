@@ -6,7 +6,9 @@ Shader "PS1Style/PostProcessDither"
 
     Properties
     {
-        _MainTex ("Source", 2D) = "white" {}
+        // Именно "_MainTex" здесь НЕ используется движком — источник кадра приходит через
+        // _BlitTexture (см. ниже), это поле оставлено только для наглядности в инспекторе,
+        // трогать/назначать туда ничего не нужно.
         _ColorLevels ("Уровней цвета на канал (напр. 16)", Range(2, 64)) = 16
         _DitherStrength ("Сила дизеринга", Range(0, 1)) = 0.5
     }
@@ -23,8 +25,13 @@ Shader "PS1Style/PostProcessDither"
             #pragma fragment Frag
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-            TEXTURE2D(_MainTex);
-            SAMPLER(sampler_MainTex);
+            // _BlitTexture — стандартное имя, под которым RenderGraphUtils.AddBlitPass
+            // передаёт исходный кадр камеры в материал. Использование любого другого имени
+            // (например _MainTex) приводит к тому, что шейдер никогда не получает реальную
+            // картинку и всегда сэмплирует дефолтную заглушку (белую/чёрную текстуру) — именно
+            // это давало сплошной белый экран.
+            TEXTURE2D_X(_BlitTexture);
+            SAMPLER(sampler_PointClamp);
             float _ColorLevels;
             float _DitherStrength;
 
@@ -57,7 +64,7 @@ Shader "PS1Style/PostProcessDither"
 
             half4 Frag(Varyings IN) : SV_Target
             {
-                half3 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv).rgb;
+                half3 col = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_PointClamp, IN.uv).rgb;
 
                 float threshold = GetBayerThreshold(IN.positionCS.xy) * _DitherStrength;
 

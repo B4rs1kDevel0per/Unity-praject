@@ -22,6 +22,10 @@ Shader "PS1Style/VertexLitAffine"
 
         [Header(Affine Wobble)]
         _AffineMapping ("Сила аффинного плыва (0 = выкл, 1 = максимум)", Range(0, 1)) = 1
+
+        [Header(SmartTiling)]
+        [Toggle] _SmartTiling ("Включить (нужна БЕСШОВНАЯ текстура!)", Float) = 0
+        _TileGridSize ("Размер клетки де-тайлинга (в повторах UV)", Range(1, 16)) = 4
     }
 
     SubShader
@@ -37,6 +41,10 @@ Shader "PS1Style/VertexLitAffine"
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+            // noperspective (используется ниже для affine-эффекта) требует Shader Model 4.0+,
+            // без явного target шейдер по умолчанию компилируется под старую модель и падает
+            // с ошибкой компиляции (из-за чего пропадает из списка в выборе шейдера).
+            #pragma target 4.5
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -68,6 +76,34 @@ Shader "PS1Style/VertexLitAffine"
             float4 _Color;
             float _GeometryResolution;
             float _AffineMapping;
+            float _SmartTiling;
+            float _TileGridSize;
+
+            // Простой хэш координат клетки -> псевдослучайные 0..1 значения.
+            // Используем только для решения "зеркалить по X / зеркалить по Y" — дёшево,
+            // без дополнительных сэмплов текстуры.
+            float2 Hash2(float2 p)
+            {
+                p = float2(dot(p, float2(127.1, 311.7)), dot(p, float2(269.5, 183.3)));
+                return frac(sin(p) * 43758.5453123);
+            }
+
+            // Разбивает UV на клетки размера 1/_TileGridSize и случайно зеркалит содержимое
+            // каждой клетки по X/Y. Работает БЕЗ ШВОВ только если исходная текстура бесшовная
+            // (её противоположные края совпадают) — тогда любое зеркалирование целой клетки
+            // по-прежнему стыкуется с соседями идеально ровно.
+            float2 ApplySmartTiling(float2 uv, float gridSize)
+            {
+                float2 scaledUV = uv * gridSize;
+                float2 cell = floor(scaledUV);
+                float2 localUV = frac(scaledUV);
+
+                float2 h = Hash2(cell);
+                if (h.x > 0.5) localUV.x = 1.0 - localUV.x;
+                if (h.y > 0.5) localUV.y = 1.0 - localUV.y;
+
+                return (cell + localUV) / gridSize;
+            }
 
             Varyings vert(Attributes IN)
             {
@@ -100,6 +136,10 @@ Shader "PS1Style/VertexLitAffine"
                 // Смешиваем перспективно-корректные и "плывущие" UV по силе эффекта.
                 // _AffineMapping = 0 -> обычная чёткая текстура, 1 -> полный PS1-вайб.
                 float2 uv = lerp(IN.uvCorrect, IN.uvAffine, _AffineMapping);
+
+                if (_SmartTiling > 0.5)
+                    uv = ApplySmartTiling(uv, _TileGridSize);
+
                 half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv) * _Color;
 
                 // Простое ламбертовское освещение по основному источнику — большего PS1 и не знала.
